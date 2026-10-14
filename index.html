@@ -1,25 +1,170 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>76b1185f4649eef62af7bdaec2928a589b34f657</title></head>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>76b1185f4649eef62af7bdaec2928a589b34f657</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d1117;
+    font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+    color: #e6edf3;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  h1 {
+    margin: 0 0 24px;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: #e6edf3;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  input {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: "SF Mono", Consolas, monospace;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #e6edf3;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus {
+    border-color: #58a6ff;
+  }
+
+  input::placeholder {
+    color: #6e7681;
+  }
+
+  button {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #238636;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:hover {
+    background: #2ea043;
+  }
+
+  button:disabled {
+    background: #30363d;
+    cursor: not-allowed;
+  }
+
+  #result {
+    margin-top: 20px;
+    padding: 14px;
+    min-height: 20px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 14px;
+    word-break: break-all;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #8b949e;
+  }
+
+  #result.found {
+    color: #3fb950;
+    border-color: #238636;
+  }
+
+  #result.not-found {
+    color: #f85149;
+    border-color: #da3633;
+  }
+
+  #result.error {
+    color: #f0883e;
+    border-color: #9e6a03;
+  }
+
+  #result:empty {
+    display: none;
+  }
+</style>
+</head>
 <body>
-  <input id="hashInput" placeholder="ввод" maxlength="40">
-  <button onclick="lookup()">найти</button>
-  <div id="result"></div>
+  <div class="card">
+    <div class="input-row">
+      <input id="hashInput" autocomplete="off">
+      <button id="btn" onclick="lookup()">найти</button>
+    </div>
+    <div id="result"></div>
+  </div>
 
   <script>
-    async function lookup() {
-      const hash = document.getElementById("hashInput").value.trim().toLowerCase();
-      const resultDiv = document.getElementById("result");
+    const API_URL = "https://dehash.duckdns.org/lookup";
 
-      resultDiv.textContent = "поиск...";
+    const input = document.getElementById("hashInput");
+    const btn = document.getElementById("btn");
+    const resultDiv = document.getElementById("result");
+
+    async function lookup() {
+      const hash = input.value.trim().toLowerCase();
+      if (!hash) return;
+
+      btn.disabled = true;
+      resultDiv.className = "";
+      resultDiv.textContent = "Поиск...";
+
       try {
-        const res = await fetch(`https://dehash.duckdns.org/lookup?hash=${hash}`);
+        const res = await fetch(`${API_URL}?hash=${encodeURIComponent(hash)}`);
         const data = await res.json();
-        resultDiv.textContent = data.found ? data.plaintext : "не найдено";
+
+        if (data.found) {
+          resultDiv.textContent = data.plaintext;
+          resultDiv.className = "found";
+        } else {
+          resultDiv.textContent = "не найдено";
+          resultDiv.className = "not-found";
+        }
       } catch (e) {
         resultDiv.textContent = "ошибка";
+        resultDiv.className = "error";
+      } finally {
+        btn.disabled = false;
       }
     }
+
+    // Enter в поле ввода тоже запускает поиск
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") lookup();
+    });
   </script>
 </body>
 </html>
