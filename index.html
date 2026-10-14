@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>76b1185f4649eef62af7bdaec2928a589b34f657</title></head>
+<body>
+  <input id="hashInput" placeholder="ввод" maxlength="40">
+  <button onclick="lookup()">найти</button>
+  <div id="result"></div>
+
+  <script>
+    async function lookup() {
+      const hash = document.getElementById("hashInput").value.trim().toLowerCase();
+      const resultDiv = document.getElementById("result");
+
+      resultDiv.textContent = "поиск...";
+      try {
+        const res = await fetch(`https://dehash.duckdns.org/lookup?hash=${hash}`);
+        const data = await res.json();
+        resultDiv.textContent = data.found ? data.plaintext : "не найдено";
+      } catch (e) {
+        resultDiv.textContent = "ошибка";
+      }
+    }
+  </script>
+</body>
+</html>
