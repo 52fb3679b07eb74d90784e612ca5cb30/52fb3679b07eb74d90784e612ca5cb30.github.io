@@ -88,22 +88,37 @@
   #result {
     margin-top: 12px;
     width: 100%;
-    cursor: default;
+    min-height: 44px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-family: "SF Mono", Consolas, monospace;
+    word-break: break-all;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #6e7681; /* цвет плейсхолдера по умолчанию */
+  }
+
+  #result a {
+    color: inherit;
+    text-decoration: underline;
   }
 
   #result.found {
     color: #3fb950;
-    border-color: #238636 !important;
+    border-color: #238636;
   }
 
   #result.not-found {
     color: #f85149;
-    border-color: #da3633 !important;
+    border-color: #da3633;
   }
 
   #result.error {
     color: #f0883e;
-    border-color: #9e6a03 !important;
+    border-color: #9e6a03;
   }
 </style>
 </head>
@@ -113,7 +128,7 @@
       <input id="hashInput" placeholder="ввод" autocomplete="off">
       <button id="btn" onclick="lookup()">найти</button>
     </div>
-    <input id="result" placeholder="вывод" disabled readonly>
+    <div id="result">вывод</div>
   </div>
 
   <script>
@@ -123,27 +138,41 @@
     const btn = document.getElementById("btn");
     const resultDiv = document.getElementById("result");
 
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderValue(text) {
+      if (text.startsWith("https://")) {
+        const safe = escapeHtml(text);
+        return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${safe}</a>`;
+      }
+      return escapeHtml(text);
+    }
+
     async function lookup() {
       const hash = input.value.trim().toLowerCase();
       if (!hash) return;
 
       btn.disabled = true;
       resultDiv.className = "";
-      resultDiv.value = "поиск...";
+      resultDiv.textContent = "поиск...";
 
       try {
         const res = await fetch(`${API_URL}?hash=${encodeURIComponent(hash)}`);
         const data = await res.json();
 
         if (data.found) {
-          resultDiv.value = data.plaintext;
+          resultDiv.innerHTML = renderValue(data.plaintext);
           resultDiv.className = "found";
         } else {
-          resultDiv.value = "не найдено";
+          resultDiv.textContent = "не найдено";
           resultDiv.className = "not-found";
         }
       } catch (e) {
-        resultDiv.value = "ошибка";
+        resultDiv.textContent = "ошибка";
         resultDiv.className = "error";
       } finally {
         btn.disabled = false;
